@@ -16,7 +16,7 @@ async def do_start_and_load():
 
         # Load the piano
         log("Loading Salamander piano samples...")
-        await window.PianoBridge.load_piano({"velocities": 5})
+        await window.PianoBridge.load_piano()
         log("Salamander piano loaded.")
 
         document["play"].disabled = False

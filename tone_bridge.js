@@ -1,40 +1,61 @@
-import { Piano } from "https://esm.sh/@tonejs/piano@0.2.1";
+// Salamander Grand Piano samples (same as Ensemble-Jammer)
+const PIANO_SAMPLES_BASE = "https://tonejs.github.io/audio/salamander/";
+const PIANO_SAMPLE_NOTES = [
+  "A0", "C1", "D#1", "F#1", "A1", "C2", "D#2", "F#2", "A2", "C3", "D#3", "F#3",
+  "A3", "C4", "D#4", "F#4", "A4", "C5", "D#5", "F#5", "A5", "C6", "D#6", "F#6",
+  "A6", "C7", "D#7", "F#7", "A7", "C8"
+];
 
-let piano = null;
+function buildPianoSamples() {
+  const samples = {};
+  for (const note of PIANO_SAMPLE_NOTES) {
+    samples[note] = `${PIANO_SAMPLES_BASE}${note.replace("#", "s")}.mp3`;
+  }
+  return samples;
+}
+
+let sampler = null;
+let isLoaded = false;
 
 function ensureLoaded() {
-  if (!piano) {
+  if (!isLoaded) {
     throw new Error("Piano not loaded. Call load_piano() first.");
   }
 }
 
 window.PianoBridge = {
 
-  async load_piano({ velocities = 5 } = {}) {
-    if (!piano) {
-      piano = new Piano({ velocities });
-      piano.toDestination();
+  async load_piano() {
+    if (sampler && isLoaded) {
+      return true;
     }
 
-    await piano.load(); // Loads Salamander samples from CDN
-    return true;
+    return new Promise((resolve, reject) => {
+      sampler = new Tone.Sampler({
+        urls: buildPianoSamples(),
+        release: 1.5,
+        onload: () => {
+          isLoaded = true;
+          sampler.toDestination();
+          resolve(true);
+        },
+        onerror: (e) => {
+          reject(e);
+        }
+      });
+    });
   },
 
   key_down(note, velocity = 0.8, delaySeconds = 0.0) {
     ensureLoaded();
-    piano.keyDown({
-      note,
-      velocity,
-      time: window.Tone.now() + delaySeconds
-    });
+    const time = Tone.now() + delaySeconds;
+    sampler.triggerAttack(note, time, velocity);
   },
 
   key_up(note, delaySeconds = 0.25) {
     ensureLoaded();
-    piano.keyUp({
-      note,
-      time: window.Tone.now() + delaySeconds
-    });
+    const time = Tone.now() + delaySeconds;
+    sampler.triggerRelease(note, time);
   }
 
 };
