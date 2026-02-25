@@ -79,10 +79,12 @@ def start_and_load(ev):
 
 def play_chord(ev):
     try:
-        # C major chord in MIDI (C4, E4, G4)
-        c_major_midi = [60, 64, 67]
-        play_chord_rolled(c_major_midi)
-        log("Playing C major (rolled, randomized)")
+        # C acoustic scale voicing:
+        # Left hand: C2 (36), G2 (43), E3 (52)
+        # Right hand: Bb3 (58), D4 (62), F#4 (66), A4 (69)
+        c_acoustic_midi = [36, 43, 52, 58, 62, 66, 69]
+        play_chord_rolled(c_acoustic_midi)
+        log("Playing C acoustic (rolled, randomized)")
     except Exception as e:
         log(f"Error playing: {e}")
 
