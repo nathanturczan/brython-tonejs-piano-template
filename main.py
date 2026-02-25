@@ -1,9 +1,60 @@
 from browser import document, window, aio
+import random
 
 log_el = document["log"]
 
 def log(msg):
     log_el.text = log_el.text + str(msg) + "\n"
+
+# --- Ported from scale-navigator-dashboard ToneJS/Chord.js ---
+
+# Random velocity between 0.2 and 0.6 (same as Dashboard)
+def random_velocity():
+    return 0.2 + random.random() * 0.4
+
+# Max total roll duration in ms
+MAX_ROLL_DURATION_MS = 500
+
+# Fisher-Yates shuffle
+def shuffle_array(arr):
+    shuffled = arr[:]
+    for i in range(len(shuffled) - 1, 0, -1):
+        j = random.randint(0, i)
+        shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+    return shuffled
+
+# Convert MIDI note number to note name (e.g., 60 -> "C4")
+def midi_to_note_name(midi):
+    note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    octave = (midi // 12) - 1
+    note_index = midi % 12
+    return note_names[note_index] + str(octave)
+
+def play_chord_rolled(midi_notes):
+    """
+    Play a chord with:
+    - Random note order (shuffle)
+    - Random delay per note (0 to MAX_ROLL_DURATION_MS)
+    - Random velocity per note (0.2 to 0.6)
+    """
+    # Remove duplicates and shuffle
+    unique_midi = list(set(midi_notes))
+    shuffled_midi = shuffle_array(unique_midi)
+
+    # Schedule each note with random delay
+    for midi in shuffled_midi:
+        note_name = midi_to_note_name(midi)
+        delay_ms = random.random() * MAX_ROLL_DURATION_MS
+        delay_sec = delay_ms / 1000.0
+        velocity = random_velocity()
+
+        # key_down with delay
+        window.PianoBridge.key_down(note_name, velocity, delay_sec)
+
+        # key_up after note has rung (delay + 1 second sustain)
+        window.PianoBridge.key_up(note_name, delay_sec + 1.0)
+
+# --- End ported logic ---
 
 async def do_start_and_load():
     try:
@@ -28,14 +79,10 @@ def start_and_load(ev):
 
 def play_chord(ev):
     try:
-        # Slightly rolled chord
-        window.PianoBridge.key_down("C4", 0.85, 0.00)
-        window.PianoBridge.key_down("E4", 0.80, 0.03)
-        window.PianoBridge.key_down("G4", 0.78, 0.06)
-
-        window.PianoBridge.key_up("C4", 0.35)
-        window.PianoBridge.key_up("E4", 0.35)
-        window.PianoBridge.key_up("G4", 0.35)
+        # C major chord in MIDI (C4, E4, G4)
+        c_major_midi = [60, 64, 67]
+        play_chord_rolled(c_major_midi)
+        log("Playing C major (rolled, randomized)")
     except Exception as e:
         log(f"Error playing: {e}")
 
