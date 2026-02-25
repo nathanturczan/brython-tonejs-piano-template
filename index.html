@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Brython + Tone.js Salamander Piano</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Tone.js (global Tone object) -->
+    <script src="https://unpkg.com/tone@14.8.49/build/Tone.js"></script>
+
+    <!-- Brython -->
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.11.3/brython_stdlib.js"></script>
+
+    <style>
+      body { font-family: system-ui, sans-serif; padding: 20px; }
+      button { padding: 10px 14px; margin-right: 10px; }
+      #log { margin-top: 15px; white-space: pre-wrap; }
+    </style>
+  </head>
+
+  <body onload="brython()">
+
+    <h3>Brython + Tone.js (Salamander Piano)</h3>
+
+    <button id="start">Start Audio + Load Piano</button>
+    <button id="play" disabled>Play C Major</button>
+
+    <div id="log"></div>
+
+    <!-- JS bridge -->
+    <script type="module" src="./tone_bridge.js"></script>
+
+    <!-- Brython Python file -->
+    <script type="text/python" src="./main.py"></script>
+
+  </body>
+</html>
