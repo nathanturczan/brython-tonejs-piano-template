@@ -1,29 +1,43 @@
-from browser import document, window
+from browser import document, window, aio
 
 log_el = document["log"]
 
 def log(msg):
     log_el.text = log_el.text + str(msg) + "\n"
 
-async def start_and_load(ev):
-    # Required user gesture for Web Audio
-    await window.Tone.start()
-    log("Audio context started.")
+async def do_start_and_load():
+    try:
+        log("Starting audio context...")
+        await aio.sleep(0)  # Yield to allow UI update
 
-    await window.PianoBridge.load_piano(velocities=5)
-    log("Salamander piano loaded.")
+        # Start Tone.js audio context
+        await window.Tone.start()
+        log("Audio context started.")
 
-    document["play"].disabled = False
+        # Load the piano
+        log("Loading Salamander piano samples...")
+        await window.PianoBridge.load_piano({"velocities": 5})
+        log("Salamander piano loaded.")
+
+        document["play"].disabled = False
+    except Exception as e:
+        log(f"Error: {e}")
+
+def start_and_load(ev):
+    aio.run(do_start_and_load())
 
 def play_chord(ev):
-    # Slightly rolled chord
-    window.PianoBridge.key_down("C4", 0.85, 0.00)
-    window.PianoBridge.key_down("E4", 0.80, 0.03)
-    window.PianoBridge.key_down("G4", 0.78, 0.06)
+    try:
+        # Slightly rolled chord
+        window.PianoBridge.key_down("C4", 0.85, 0.00)
+        window.PianoBridge.key_down("E4", 0.80, 0.03)
+        window.PianoBridge.key_down("G4", 0.78, 0.06)
 
-    window.PianoBridge.key_up("C4", 0.35)
-    window.PianoBridge.key_up("E4", 0.35)
-    window.PianoBridge.key_up("G4", 0.35)
+        window.PianoBridge.key_up("C4", 0.35)
+        window.PianoBridge.key_up("E4", 0.35)
+        window.PianoBridge.key_up("G4", 0.35)
+    except Exception as e:
+        log(f"Error playing: {e}")
 
 document["start"].bind("click", start_and_load)
 document["play"].bind("click", play_chord)
