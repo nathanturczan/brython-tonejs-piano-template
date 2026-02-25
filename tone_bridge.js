@@ -1,4 +1,4 @@
-import { Piano } from "https://unpkg.com/@tonejs/piano@0.2.1/dist/Piano.js";
+import { Piano } from "https://esm.sh/@tonejs/piano@0.2.1";
 
 let piano = null;
 
