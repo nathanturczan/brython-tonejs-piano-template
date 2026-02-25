@@ -12,8 +12,14 @@ def log(msg):
 def random_velocity():
     return 0.2 + random.random() * 0.4
 
-# Max total roll duration in ms
-MAX_ROLL_DURATION_MS = 500
+# Max total roll duration in ms (longer = more spread out)
+MAX_ROLL_DURATION_MS = 1500
+
+# Sustain duration in seconds (like holding sustain pedal)
+SUSTAIN_DURATION_SEC = 10.0
+
+# Track currently active notes for pedal-up-then-down behavior
+active_notes = []
 
 # Fisher-Yates shuffle
 def shuffle_array(arr):
@@ -36,7 +42,16 @@ def play_chord_rolled(midi_notes):
     - Random note order (shuffle)
     - Random delay per note (0 to MAX_ROLL_DURATION_MS)
     - Random velocity per note (0.2 to 0.6)
+    - Pedal-up-then-down: release previous notes before playing new ones
+    - Long sustain (SUSTAIN_DURATION_SEC)
     """
+    global active_notes
+
+    # Pedal up: release any currently active notes immediately
+    for note_name in active_notes:
+        window.PianoBridge.key_up(note_name, 0.0)
+    active_notes = []
+
     # Remove duplicates and shuffle
     unique_midi = list(set(midi_notes))
     shuffled_midi = shuffle_array(unique_midi)
@@ -51,8 +66,11 @@ def play_chord_rolled(midi_notes):
         # key_down with delay
         window.PianoBridge.key_down(note_name, velocity, delay_sec)
 
-        # key_up after note has rung (delay + 1 second sustain)
-        window.PianoBridge.key_up(note_name, delay_sec + 1.0)
+        # Track this note as active
+        active_notes.append(note_name)
+
+        # key_up after long sustain (delay + SUSTAIN_DURATION_SEC)
+        window.PianoBridge.key_up(note_name, delay_sec + SUSTAIN_DURATION_SEC)
 
 # --- End ported logic ---
 
